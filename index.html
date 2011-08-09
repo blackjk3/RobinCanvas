@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sprite Sheet Example - Canvas</title>
+    <meta name="author" content="Jason Kadrmas, jason@kadrmasconcepts.com">
+    <meta name="viewport" content="width = 320" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<style>
+		#main { position:absolute; }
+	</style>
+  </head>
+  <body>
+    <canvas id="main">
+		<h1>Unfortunately, your browser does not support the canvas tag.</h1>
+	</canvas>
+  </body>
+  
+  <script>
+		function CanvasSprite(canvas, w, h, sprite_url) {
+			this.w = w;
+  			this.h = h;
+  			this.canvas = canvas;
+  			this.canvas.width = w;
+  			this.canvas.height = h;
+  			this.intAnimation = 1000 / this.FPS;
+  			
+  			this.load('img', 'spritesheet', sprite_url, this.onSpriteSheet.bind(this));
+		}
+		
+		CanvasSprite.prototype.TOTAL_COLUMNS = 5;
+		CanvasSprite.prototype.TOTAL_FRAMES = 22;
+		CanvasSprite.prototype.FPS = 18;
+		
+		CanvasSprite.prototype.load = function(type, prop, url, callback) {
+  			this[prop] = document.createElement(type);
+  			this[prop].addEventListener('load', callback);
+ 
+  			this[prop].src = url;
+  			console.log(this[prop], prop);
+		};
+		
+		CanvasSprite.prototype.onSpriteSheet = function() {
+  			this.sw = this.spritesheet.width / 5;
+  			this.sh = this.spritesheet.height / 5;
+  			this.tick(new Date().getTime());
+		};
+		
+		CanvasSprite.prototype.draw = function(time) {
+			var frame = Math.round(time / this.intAnimation) % this.TOTAL_FRAMES;
+			
+			var column_frame = frame % this.TOTAL_COLUMNS;
+  			
+  			var sx = this.sw * column_frame;
+  			var sy = this.sh * Math.floor(frame / this.TOTAL_COLUMNS);
+  			
+			var context = this.canvas.getContext('2d');
+			//drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+			context.clearRect(0,0,this.sw,this.sh);
+  			context.drawImage(this.spritesheet,
+     			sx, sy, this.sw, this.sh,
+      			0, 0, this.sw, this.sh);
+		}
+		
+		CanvasSprite.prototype.tick = function(time) {
+  			this.draw(time);
+  			requestAnimFrame(this.tick.bind(this), this.canvas);
+		};
+		
+		// shim layer with setTimeout fallback
+    	window.requestAnimFrame = (function(){
+     	 return  window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function(/* function */ callback, /* DOMElement */ element){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    	})();
+  </script>
+  
+  <script>
+      var main = document.querySelector('#main');
+      var demo = new CanvasSprite(main, 800, 500,'robin.png');
+    </script>
+</html>
